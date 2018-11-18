@@ -1,3 +1,14 @@
+#include "arrpat.h"
+#include <MozziGuts.h>
+#include <mozzi_rand.h>
+#include <mozzi_midi.h>
+#include <EventDelay.h>
+#include <tables/sin2048_int8.h>
+
+#define CONTROL_RATE 64
+Oscil <SIN2048_NUM_CELLS, AUDIO_RATE> aSin(SIN2048_DATA);
+EventDelay kDelay;
+
 int const nob[3] = {A0,A1,A2};
 
 #define switch1 10 //page
@@ -23,42 +34,36 @@ int keyshift = 0;
 
 int bang = 0;
 
-int scaleMap[6][7] = {
-  {60, 62, 64, 65, 67, 69, 71}, //major
-  {60, 62, 63, 65, 67, 69, 70}, //dorian
-  {60, 62, 64, 67, 69, 72, 74}, //penta
-  {60, 63, 65, 67, 70, 72, 75}, //minor penta 
-  {60, 62, 63, 65, 67, 68, 70}, //minor
-  {60, 61, 64, 65, 67, 68, 71} //gypsy
-};
-
-int noteNum[13] = {60,61,62,63,64,65,66,67,68,69,70,71,72};
-int notefreq[13] = {261,277,293,311,329,349,370,392,415,440,466,493,523};
-
 int pushkey(int);
 
-void setup()
+//---------setup start
+void setup() 
 {
+  startMozzi(CONTROL_RATE);
   pinMode(switch1, INPUT);
   pinMode(switch2, INPUT);
   pinMode(looptop, OUTPUT);
   pinMode(octUP, INPUT);
   pinMode(octDOWN, INPUT);
-  Serial.begin(9600);
+  randSeed();
+  kDelay.start(500);
 }
+//---------setup end
 
-void loop()
-{
-  if(digitalRead(switch1) == LOW){
-    pageState0 = 1;
-  }else{
-    pageState1 = 1;
-  }
+
+//---------updateControl start
+void updateControl();{
+	if(digitalRead(switch1) == LOW){
+    	pageState0 = 1;
+  	}else{
+    	pageState1 = 1;
+  	}
+
 //page1 prossece
   if(pageState0 == 1){
     for(int i=0; i<3; i++){
-    	if(valNob[1][i] != analogRead(nob[i])){
-    		valNob[0][i] = analogRead(nob[i]);
+    	if(valNob[1][i] != mozziAnalogRead(nob[i])){
+    		valNob[0][i] = mozziAnalogRead(nob[i]);
         }
     }
     pageState0 = 0;
@@ -67,8 +72,8 @@ void loop()
   if(pageState1 == 1){
     
     for(int i=0; i<3; i++){
-    	if(valNob[0][i] != analogRead(nob[i])){
-    		valNob[1][i] = analogRead(nob[i]);
+    	if(valNob[0][i] != mozziAnalogRead(nob[i])){
+    		valNob[1][i] = mozziAnalogRead(nob[i]);
     	}
     }
     pageState1 = 0;
@@ -86,10 +91,10 @@ void loop()
   
 //push da oscillate
   if(digitalRead(switch2) == LOW){
-    if(analogRead(A5) != 1023){
-  	tone(9,noteNum[pushkey(analogRead(A5))]);
+    if(mozziAnalogRead(A5) != 1023){
+  		aSin.setFreq(mtof(pushkey(mozziAnalogRead(A5)) + 60 + keyshift));
     }else{
-      noTone(9);
+    	aSin.setFreq(0.f);
     }
   }else{ //Arrp mode:sometime make liblary
     
@@ -107,6 +112,22 @@ void loop()
   Serial.println(analogRead(A0));
   delay(500);
 }
+//---------updateControl end
+
+
+//---------updateAudio start
+int updateAudio(){
+	return aSin.next();
+}
+//---------updateAudio end
+
+
+//---------loop start
+void loop(){
+  audioHook();
+}
+//---------loop end
+
 
 int pushkey(int pushSwitch){
   if(pushSwitch < 50){
