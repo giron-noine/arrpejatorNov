@@ -1,5 +1,7 @@
-﻿#include "arrpat.h"
-//#include "mozzi_rand.h"
+#include "arrpat.h"
+#include "arduino.h"
+
+//#include <mozzi_rand.h>
 
 /*
 int scaleMap[6][7] = {
@@ -34,14 +36,14 @@ int scaleMap[6][7] = {
 	{0, 1, 4, 5, 7, 8, 11}, //gypsy
 };
 
-int noiPatt(int patt, int scale, int note, int step){
+int noiPatt(int patt, int scale, int note, int steps){
 
  	if(patt == 0){ //patt1 is step up
-		noteNum = note + scaleMap[scale][step] + 60; //60 is 0 to midi note C
+		noteNum = note + scaleMap[scale][steps] + 60; //60 is 0 to midi note C
 		return noteNum;
 	
 	}else if(patt == 1){ //patt2 is step down
-		switch(step){
+		switch(steps){
 			case 0:
 				noteNum = note + scaleMap[scale][6] + 60;
 				break;
@@ -67,7 +69,7 @@ int noiPatt(int patt, int scale, int note, int step){
 		return noteNum;
 
 	}else if(patt == 2){ //patt3 is skip up
-		switch(step){
+		switch(steps){
 			case 0:
 				noteNum = note + scaleMap[scale][0] + 60;
 				break;
@@ -92,7 +94,7 @@ int noiPatt(int patt, int scale, int note, int step){
 		}
 		return noteNum;
 	}else if(patt == 3){ //patt3 is skip down
-		switch(step){
+		switch(steps){
 			case 0:
 				noteNum = note + scaleMap[scale][6] + 60;
 				break;
@@ -116,9 +118,9 @@ int noiPatt(int patt, int scale, int note, int step){
 				break;
 		}
 		return noteNum;
-	}
-	/*else if(patt == 4){ //patt4 is random
-			switch(step){
+	} /*
+	else if(patt == 4){ //patt4 is random
+			switch(steps){
 			case 0:
 				noteNum = note + scaleMap[scale][rand(7)] + 60;
 				break;
@@ -143,5 +145,51 @@ int noiPatt(int patt, int scale, int note, int step){
 		}
 		return noteNum; 
 
-  } */
+  } */ 
 }
+
+int pushkey(int pushSwitch){
+  if(pushSwitch < 50){
+    return 0; //0
+  }else if(pushSwitch < 100){
+    return 1; //78
+  }else if(pushSwitch < 200){
+    return 2; //158
+  }else if(pushSwitch < 300){
+    return 3; //237
+  }else if(pushSwitch < 350){
+    return 4; //318
+  }else if(pushSwitch < 420){
+    return 5; //404
+  }else if(pushSwitch < 500){
+    return 6; //477
+  }else if(pushSwitch < 600){
+  return 7; //552
+  }else if(pushSwitch < 700){
+  return 8; //636
+  }else if(pushSwitch < 740){
+    return 9; //715
+  }else if(pushSwitch < 840){
+    return 10; //797
+  }else if(pushSwitch < 900){
+    return 11; //871
+  }else if(pushSwitch < 1000){
+    return 12; //947
+  }
+}
+
+/*
+0
+78
+158
+237
+318 
+396 404
+471 477
+548 552
+627 636
+709 715
+788 792
+867 868
+943 943
+*/
