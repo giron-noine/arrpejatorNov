@@ -1,5 +1,6 @@
 #include "arrpat.h"
 #include <MozziGuts.h>
+#include <Oscil.h>
 #include <mozzi_rand.h>
 #include <mozzi_midi.h>
 #include <EventDelay.h>
@@ -36,6 +37,8 @@ int bang = 0;
 
 int pushkey(int);
 
+int playNote;
+
 //---------setup start
 void setup() 
 {
@@ -47,12 +50,13 @@ void setup()
   pinMode(octDOWN, INPUT);
   randSeed();
   kDelay.start(500);
+  Serial.begin(9600);
 }
 //---------setup end
 
 
 //---------updateControl start
-void updateControl();{
+void updateControl(){
 	if(digitalRead(switch1) == LOW){
     	pageState0 = 1;
   	}else{
@@ -92,25 +96,16 @@ void updateControl();{
 //push da oscillate
   if(digitalRead(switch2) == LOW){
     if(mozziAnalogRead(A5) != 1023){
-  		aSin.setFreq(mtof(pushkey(mozziAnalogRead(A5)) + 60 + keyshift));
+      playNote = pushkey(mozziAnalogRead(A5)) + 60 + keyshift;
+  		aSin.setFreq(mtof(playNote));
     }else{
-    	aSin.setFreq(0.f);
+    	aSin.setFreq(0);
     }
-  }else{ //Arrp mode:sometime make liblary
+  } /* else{ //Arrp mode:sometime make liblary
     
-  }
+  } */
   
-  Serial.print("voltage");
-  Serial.println(pushkey(analogRead(A5)));
-  Serial.print("octaveU");
-  Serial.println(digitalRead(octUP));
-  Serial.print("octaveD");
-  Serial.println(digitalRead(octDOWN));
-  Serial.print("octave");
-  Serial.println(keyshift);
-  Serial.print("dial1");
-  Serial.println(analogRead(A0));
-  delay(500);
+  
 }
 //---------updateControl end
 
@@ -125,6 +120,20 @@ int updateAudio(){
 //---------loop start
 void loop(){
   audioHook();
+  
+  Serial.print("voltage");
+  Serial.println(pushkey(mozziAnalogRead(A5)));
+  Serial.print("octaveU");
+  Serial.println(digitalRead(octUP));
+  Serial.print("octaveD");
+  Serial.println(digitalRead(octDOWN));
+  Serial.print("octave");
+  Serial.println(keyshift);
+  Serial.print("dial1");
+  Serial.println(mozziAnalogRead(A0));
+  Serial.print("note");
+  Serial.println(playNote);
+
 }
 //---------loop end
 

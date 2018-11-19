@@ -1,5 +1,5 @@
 ﻿#include "arrpat.h"
-#include "mozzi_rand.h"
+//#include "mozzi_rand.h"
 
 /*
 int scaleMap[6][7] = {
@@ -22,6 +22,8 @@ int scaleMap[6][30] = {
 */
 
 //int noteNum[13] = {60,61,62,63,64,65,66,67,68,69,70,71,72};
+
+int noteNum;
 
 int scaleMap[6][7] = {
 	{0, 2, 4, 5, 7, 9, 11}, //major
@@ -114,34 +116,32 @@ int noiPatt(int patt, int scale, int note, int step){
 				break;
 		}
 		return noteNum;
-	}else if(patt == 4){ //patt4 is random
+	}
+	/*else if(patt == 4){ //patt4 is random
 			switch(step){
 			case 0:
-				noteNum = note + scaleMap[scale][rand(0,7)] + 60;
+				noteNum = note + scaleMap[scale][rand(7)] + 60;
 				break;
 			case 1:
-				noteNum = note + scaleMap[scale][rand(0,7)] + 60;
+				noteNum = note + scaleMap[scale][rand(7)] + 60;
 				break;
 			case 2:
-				noteNum = note + scaleMap[scale][rand(0,7)] + 60;
+				noteNum = note + scaleMap[scale][rand(7)] + 60;
 				break;
 			case 3:
-				noteNum = note + scaleMap[scale][rand(0,7)] + 60;
+				noteNum = note + scaleMap[scale][rand(7)] + 60;
 				break;
 			case 4:
-				noteNum = note + scaleMap[scale][rand(0,7)] + 60;
+				noteNum = note + scaleMap[scale][rand(7)] + 60;
 				break;
 			case 5:
-				noteNum = note + scaleMap[scale][rand(0,7)] + 60;
+				noteNum = note + scaleMap[scale][rand(7)] + 60;
 				break;
 			case 6:
-				noteNum = note + scaleMap[scale][rand(0,7)] + 60;
+				noteNum = note + scaleMap[scale][rand(7)] + 60;
 				break;
 		}
-		return noteNum;
+		return noteNum; 
 
+  } */
 }
-
-
-
-
