@@ -13,6 +13,7 @@
 #define CONTROL_RATE 64
 Oscil <SIN2048_NUM_CELLS, AUDIO_RATE> aSin(SIN2048_DATA);
 EventDelay kDelay;
+Ead kEnvelope(CONTROL_RATE);
 Rotary rotary = Rotary(4, 5);
 
 
@@ -40,7 +41,10 @@ int dechune;
 int keyshift = 0;
 
 int bang = 0;
-
+//envelope
+int gain;
+unsigned int attack = 100;
+unsigned int decay = 10;
 
 int pushkey(int);
 
