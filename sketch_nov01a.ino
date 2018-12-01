@@ -6,13 +6,13 @@
 #include <mozzi_rand.h>
 #include <mozzi_midi.h>
 #include <EventDelay.h>
-#include <Ead.h>
+#include <ADSR.h>
 #include <tables/sin2048_int8.h>
 
 #define CONTROL_RATE 64
 Oscil <SIN2048_NUM_CELLS, AUDIO_RATE> aSin(SIN2048_DATA);
 EventDelay kDelay;
-Ead kEnvelope(CONTROL_RATE);
+ADSR <CONTROL_RATE, AUDIO_RATE> envelope;
 
 Rotary rotary1 = Rotary(3, 4);
 Rotary rotary2 = Rotary(5, 6);
@@ -21,7 +21,7 @@ Rotary rotary3 = Rotary(7, 8);
 
 //int const nob[3] = {A0,A1,A2};
 
-#define switch1 1 //page
+#define switch1 A0 //page
 #define switch2 2 //arrp ON
 #define looptop 12
 
@@ -49,7 +49,9 @@ int bang = 0;
 //envelope
 int gain;
 unsigned int attack = 10;
-unsigned int decay = 100;
+unsigned int decay = 1000;
+unsigned int attackR = 10;
+unsigned int decayR = 1000;
 
 int pushkey(int);
 
@@ -66,6 +68,11 @@ void setup()
   kDelay.start(500);
   for (byte i = 0 ; i < SW_NUM ; i++){
     pinMode(s_pin[i], INPUT);
+
+  byte attack_level = 255;
+  byte decay_level = 255;
+  envelope.setADLevels(attack_level,decay_level);
+
   }
 }
 //---------------------setup end
@@ -74,7 +81,7 @@ void setup()
 //---------------------updateControl start
 void updateControl(){
 
-  tmp_bpm = map(mozziAnalogRead(A4),0,1023,0,5000);
+  tmp_bpm = map(mozziAnalogRead(A4),0,1023,0,2000);
   //stepNum = map(valNob[0][0],0,1023,0,15);
 
 //esc chataring
@@ -104,15 +111,16 @@ if((digitalRead(7) == 1)&&(octv<3)){
   }
 */
 
-  
+/*  
 	if(digitalRead(switch1) == LOW){
     	pageState0 = 1;
   	}else{
     	pageState1 = 1;
   	}
-
+*/
 //page1 prossece
-	if(pageState0 == 1){
+	if(mozziAnalogRead(switch1) < 1000){
+    //digitalWrite(12, HIGH);
 		unsigned char result1 = rotary1.process(); //pattern select
 			if((result1 == DIR_CW)&&(pattern<4)){
  				pattern++;
@@ -127,8 +135,8 @@ if((digitalRead(7) == 1)&&(octv<3)){
   				scaleNum--;
   			}
 
-     unsigned char result3 = rotary3.process(); //scale select
-     if((result3 == DIR_CW)&&(stepNum<15)){
+     unsigned char result3 = rotary3.process(); //step select
+     if((result3 == DIR_CW)&&(stepNum<16)){
         stepNum++;
         }else if((result3 == DIR_CCW)&&(stepNum>0)){
           stepNum--;
@@ -137,19 +145,23 @@ if((digitalRead(7) == 1)&&(octv<3)){
 	}
 
 //page2 prossece
-	if(pageState1 == 1){
+	else{
 		unsigned char result1 = rotary1.process(); //attack select
 			if((result1 == DIR_CW)&&(attack<2000)){
- 				  attack = attack++ * 10;
+ 				  attack++;
+          attackR = attack *10;
   			}else if((result1 == DIR_CCW)&&(attack>0)){
-  			  attack = attack-- * 10;
+  			  attack--;
+  			  attackR = attack *10;
   			}
 
 		unsigned char result2 = rotary2.process(); //decay select
 			if((result2 == DIR_CW)&&(decay<2000)){
- 				decay++;
+ 				  decay++;
+ 				  decayR = decay *10;
   			}else if((result2 == DIR_CCW)&&(decay>0)){
   				decay--;
+  				decayR = decay *10;
   			}
 		pageState1 = 0;
 	}
@@ -181,13 +193,14 @@ if((digitalRead(7) == 1)&&(octv<3)){
 //push da oscillate
   if(digitalRead(switch2) == LOW){
     if(mozziAnalogRead(A5) != 1023){
+      envelope.setTimes(attackR+10, 10, 10, decayR+10);
+      envelope.noteOn();
       playNote = pushkey(mozziAnalogRead(A5)) + 60 + keyshift;
   		aSin.setFreq(mtof(playNote));
-		kEnvelope.start(attack,decay); //エンベロープスタート
+      //gain = (int) kEnvelope.next();
     }else{
-		//kDelay.start(100); //トリガー
-		gain = (int) kEnvelope.next(); 
-    //aSin.setFreq(0.f);
+      envelope.noteOff();
+      //aSin.setFreq(0.f);
     }
   }else if((digitalRead(switch2) == HIGH)&&(mozziAnalogRead(A5) != 1023)){ //Arrp mode:sometime make liblary
     if(kDelay.ready()){
@@ -196,112 +209,112 @@ if((digitalRead(7) == 1)&&(octv<3)){
         case 0: //int noiPatt(int patt, int scale, int note, int steps)
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, HIGH);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 1:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 2:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 3:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 4:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 5:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 6:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 7:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 8:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 9:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 10:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 11:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 12:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 13:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 14:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 15:
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
         digitalWrite(12, LOW);
-        kEnvelope.start(attack,decay);
+        //kEnvelope.start(attack,decay);
         bang++;
         break;
       }
@@ -311,8 +324,8 @@ if((digitalRead(7) == 1)&&(octv<3)){
       }  
     }
    }else{
-    gain = (int) kEnvelope.next();
-    //aSin.setFreq(0.f);
+    //gain = (int) kEnvelope.next();
+    aSin.setFreq(0.f);
   }
 
 /* 
@@ -338,7 +351,8 @@ if((digitalRead(7) == 1)&&(octv<3)){
 //---------------------updateAudio start
 int updateAudio(){
 	//return (gain*aSin.next())>>8;
-  return gain*aSin.next();
+  return (int) (envelope.next() * aSin.next())>>8;
+  //return aSin.next();
 }
 //---------------------updateAudio end
 
