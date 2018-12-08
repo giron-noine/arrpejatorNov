@@ -1,29 +1,8 @@
 #include "arrpat.h"
 #include "arduino.h"
-//#include <MozziGuts.h>
+
 #include <mozzi_rand.h>
 
-/*
-int scaleMap[6][7] = {
-  {60, 62, 64, 65, 67, 69, 71}, //major
-  {60, 62, 63, 65, 67, 69, 70}, //dorian
-  {60, 62, 64, 67, 69, 72, 74}, //penta
-  {60, 63, 65, 67, 70, 72, 75}, //minor penta 
-  {60, 62, 63, 65, 67, 68, 70}, //minor
-  {60, 61, 64, 65, 67, 68, 71} //gypsy
-};
-
-int scaleMap[6][30] = {
-  {38, 40, 41, 43, 45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77, 79, 81, 83, 84, 86, 88}, //major
-  {38, 39, 41, 43, 45, 46, 48, 50, 51, 53, 55, 57, 58, 60, 62, 63, 65, 67, 69, 70, 72, 74, 75, 77, 79, 81, 82, 84, 86, 87}, //dorian
-  {26, 28, 31, 33, 36, 38, 40, 43, 45, 48, 50, 52, 55, 57, 60, 62, 64, 67, 69, 72, 74, 76, 79, 81, 84, 86, 88, 91, 93, 96}, //penta
-  {27, 29, 31, 34, 36, 39, 41, 43, 46, 48, 51, 53, 55, 58, 60, 63, 65, 67, 70, 72, 75, 77, 79, 82, 84, 87, 89, 91, 94, 96}, //minor penta
-  {60, 62, 63, 65, 67, 68, 70}, //minor
-  {60, 61, 64, 65, 67, 68, 71} //gypsy
-};
-*/
-
-//int noteNum[13] = {60,61,62,63,64,65,66,67,68,69,70,71,72};
 
 int noteNum;
 
@@ -65,34 +44,34 @@ int noiPatt(int patt, int scale, int note, int steps){
 			case 6:
 				noteNum = note + scaleMap[scale][9] + 60;
 				break;
-      case 7:
-        noteNum = note + scaleMap[scale][8] + 60;
-        break;
-      case 8:
-        noteNum = note + scaleMap[scale][7] + 60;
-        break;
-      case 9:
-        noteNum = note + scaleMap[scale][6] + 60;
-        break;
-      case 10:
-        noteNum = note + scaleMap[scale][5] + 60;
-        break;
-      case 11:
-        noteNum = note + scaleMap[scale][4] + 60;
-        break;
-      case 12:
-        noteNum = note + scaleMap[scale][3] + 60;
-        break;
-      case 13:
-        noteNum = note + scaleMap[scale][2] + 60;
-        break;
-      case 14:
-        noteNum = note + scaleMap[scale][1] + 60;
-        break;
-      case 15:
-        noteNum = note + scaleMap[scale][0] + 60;
-        break;
-		}
+      		case 7:
+      			noteNum = note + scaleMap[scale][8] + 60;
+        		break;
+      		case 8:
+        		noteNum = note + scaleMap[scale][7] + 60;
+        		break;
+      		case 9:
+        		noteNum = note + scaleMap[scale][6] + 60;
+        		break;
+      		case 10:
+        		noteNum = note + scaleMap[scale][5] + 60;
+        		break;
+     		case 11:
+        		noteNum = note + scaleMap[scale][4] + 60;
+        		break;
+      		case 12:
+        		noteNum = note + scaleMap[scale][3] + 60;
+        		break;
+      		case 13:
+        		noteNum = note + scaleMap[scale][2] + 60;
+        		break;
+      		case 14:
+        		noteNum = note + scaleMap[scale][1] + 60;
+        		break;
+      		case 15:
+        		noteNum = note + scaleMap[scale][0] + 60;
+        		break;
+			}
 		return noteNum;
 
 	}else if(patt == 2){ //patt3 is skip up
@@ -118,35 +97,36 @@ int noiPatt(int patt, int scale, int note, int steps){
 			case 6:
 				noteNum = note + scaleMap[scale][3] + 60;
 				break;
-      case 7:
-        noteNum = note + scaleMap[scale][6] + 60;
-        break;
-      case 8:
-        noteNum = note + scaleMap[scale][4] + 60;
-        break;
-      case 9:
-        noteNum = note + scaleMap[scale][7] + 60;
-        break;
-      case 10:
-        noteNum = note + scaleMap[scale][5] + 60;
-        break;
-      case 11:
-        noteNum = note + scaleMap[scale][8] + 60;
-        break;
-      case 12:
-        noteNum = note + scaleMap[scale][6] + 60;
-        break;
-      case 13:
-        noteNum = note + scaleMap[scale][9] + 60;
-        break;
-      case 14:
-        noteNum = note + scaleMap[scale][7] + 60;
-        break;
-      case 15:
-        noteNum = note + scaleMap[scale][10] + 60;
-        break;
-		}
+      		case 7:
+       			noteNum = note + scaleMap[scale][6] + 60;
+        		break;
+      		case 8:
+        		noteNum = note + scaleMap[scale][4] + 60;
+        		break;
+      		case 9:
+       			noteNum = note + scaleMap[scale][7] + 60;
+        		break;
+      		case 10:
+        		noteNum = note + scaleMap[scale][5] + 60;
+        		break;
+      		case 11:
+        		noteNum = note + scaleMap[scale][8] + 60;
+        		break;
+      		case 12:
+        		noteNum = note + scaleMap[scale][6] + 60;
+        		break;
+      		case 13:
+        		noteNum = note + scaleMap[scale][9] + 60;
+        		break;
+      		case 14:
+        		noteNum = note + scaleMap[scale][7] + 60;
+        		break;
+      		case 15:
+        		noteNum = note + scaleMap[scale][10] + 60;
+        		break;
+			}
 		return noteNum;
+
 	}else if(patt == 3){ //patt3 is skip center
 		switch(steps){
 			case 0:
@@ -170,34 +150,34 @@ int noiPatt(int patt, int scale, int note, int steps){
 			case 6:
 				noteNum = note + scaleMap[scale][4] + 60;
 				break;
-      case 7:
-        noteNum = note + scaleMap[scale][12] + 60;
-        break;
-      case 8:
-        noteNum = note + scaleMap[scale][5] + 60;
-        break;
-      case 9:
-        noteNum = note + scaleMap[scale][11] + 60;
-        break;
-      case 10:
-        noteNum = note + scaleMap[scale][6] + 60;
-        break;
-      case 11:
-        noteNum = note + scaleMap[scale][10] + 60;
-        break;
-      case 12:
-        noteNum = note + scaleMap[scale][7] + 60;
-        break;
-      case 13:
-        noteNum = note + scaleMap[scale][9] + 60;
-        break;
-      case 14:
-        noteNum = note + scaleMap[scale][8] + 60;
-        break;
-      case 15:
-        noteNum = note + scaleMap[scale][9] + 60;
-        break;
-		}
+      		case 7:
+        		noteNum = note + scaleMap[scale][12] + 60;
+        		break;
+      		case 8:
+        		noteNum = note + scaleMap[scale][5] + 60;
+        		break;
+      		case 9:
+        		noteNum = note + scaleMap[scale][11] + 60;
+        		break;
+      		case 10:
+        		noteNum = note + scaleMap[scale][6] + 60;
+        		break;
+      		case 11:
+        		noteNum = note + scaleMap[scale][10] + 60;
+        		break;
+      		case 12:
+        		noteNum = note + scaleMap[scale][7] + 60;
+        		break;
+      		case 13:
+        		noteNum = note + scaleMap[scale][9] + 60;
+        		break;
+      		case 14:
+        		noteNum = note + scaleMap[scale][8] + 60;
+        		break;
+      		case 15:
+        		noteNum = note + scaleMap[scale][9] + 60;
+        		break;
+			}
 		return noteNum;
 	}
 	else if(patt == 4){ //patt4 is random
@@ -223,66 +203,66 @@ int noiPatt(int patt, int scale, int note, int steps){
 			case 6:
 				noteNum = note + scaleMap[scale][rand(16)] + 60;
 				break;
-      case 7:
-        noteNum = note + scaleMap[scale][rand(16)] + 60;
-        break;
-      case 8:
-        noteNum = note + scaleMap[scale][rand(16)] + 60;
-        break;
-      case 9:
-        noteNum = note + scaleMap[scale][rand(16)] + 60;
-        break;
-      case 10:
-        noteNum = note + scaleMap[scale][rand(16)] + 60;
-        break;
-      case 11:
-        noteNum = note + scaleMap[scale][rand(16)] + 60;
-        break;
-      case 12:
-        noteNum = note + scaleMap[scale][rand(16)] + 60;
-        break;
-      case 13:
-        noteNum = note + scaleMap[scale][rand(16)] + 60;
-        break;
-      case 14:
-        noteNum = note + scaleMap[scale][rand(16)] + 60;
-        break;
-      case 15:
-        noteNum = note + scaleMap[scale][rand(16)] + 60;
-        break;
-		}
+      		case 7:
+        		noteNum = note + scaleMap[scale][rand(16)] + 60;
+        		break;
+      		case 8:
+        		noteNum = note + scaleMap[scale][rand(16)] + 60;
+        		break;
+     		case 9:
+        		noteNum = note + scaleMap[scale][rand(16)] + 60;
+        		break;
+      		case 10:
+        		noteNum = note + scaleMap[scale][rand(16)] + 60;
+        		break;
+      		case 11:
+        		noteNum = note + scaleMap[scale][rand(16)] + 60;
+        		break;
+      		case 12:
+        		noteNum = note + scaleMap[scale][rand(16)] + 60;
+        		break;
+      		case 13:
+        		noteNum = note + scaleMap[scale][rand(16)] + 60;
+        		break;
+      		case 14:
+        		noteNum = note + scaleMap[scale][rand(16)] + 60;
+        		break;
+      		case 15:
+        		noteNum = note + scaleMap[scale][rand(16)] + 60;
+        		break;
+			}
 		return noteNum; 
-
   } 
 }
 
+
 int pushkey(int pushSwitch){
   if(pushSwitch < 50){
-    return 0; //0
+    return 0; //0 10kohm
   }else if(pushSwitch < 100){
-    return 1; //78
+    return 1; //78 820ohm
   }else if(pushSwitch < 200){
-    return 2; //158
+    return 2; //158 1kohm
   }else if(pushSwitch < 300){
-    return 3; //237
+    return 3; //237 1.2kohm
   }else if(pushSwitch < 350){
-    return 4; //318
+    return 4; //318 1.5kohm
   }else if(pushSwitch < 420){
-    return 5; //404
+    return 5; //404 2kohm
   }else if(pushSwitch < 500){
-    return 6; //477
+    return 6; //477 2.2kohm
   }else if(pushSwitch < 600){
-  return 7; //552
+  return 7; //552 3kohm
   }else if(pushSwitch < 700){
-  return 8; //636
+  return 8; //636 4.7kohm
   }else if(pushSwitch < 740){
-    return 9; //715
+    return 9; //715 6.8kohm
   }else if(pushSwitch < 840){
-    return 10; //797
+    return 10; //797 12kohm
   }else if(pushSwitch < 900){
-    return 11; //871
+    return 11; //871 22kohm
   }else if(pushSwitch < 1000){
-    return 12; //947
+    return 12; //947 68kohm
   }
 }
 
