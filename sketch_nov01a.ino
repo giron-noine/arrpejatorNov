@@ -74,11 +74,6 @@ void setup()
   kDelay.start(500);
   for (byte i = 0 ; i < SW_NUM ; i++){
     pinMode(s_pin[i], INPUT);
-
-  byte attack_level = 255;
-  byte decay_level = 255;
-  envelope.setADLevels(attack_level,decay_level);
-
   }
 }
 //---------------------setup end
@@ -86,6 +81,10 @@ void setup()
 
 //---------------------updateControl start
 void updateControl(){
+
+  byte attack_level = 255;
+  byte decay_level = 255;
+  envelope.setADLevels(attack_level,decay_level);
 
 //esc chataring
     byte sw1 = BUTTON(0);
@@ -167,18 +166,21 @@ stepNum = map(valNob[0][2], 0, 127, 0, 16);
 attackR = map(valNob[1][0], 0, 127, 1, 1000);
 decayR = map(valNob[1][1], 0, 127, 1, 1000);
 tmp_bpm = map(valNob[1][2], 0, 127, 1, 2000);
-envelope.setTimes(attackR, 10, 10, decayR);
 
 //push da oscillate
   if(digitalRead(switch2) == LOW){
     if(mozziAnalogRead(A5) != 1023){
+      envelope.setTimes(attackR, 100, 100, decayR);
       envelope.noteOn();
       playNote = pushkey(mozziAnalogRead(A5)) + 60 + keyshift;
   		aSin.setFreq(mtof(playNote));
       //gain = (int) kEnvelope.next();
     }else{
       envelope.noteOff();
-      //aSin.setFreq(0.f);
+        if(kDelay.ready()){
+          kDelay.start(attackR+decayR);
+          aSin.setFreq(0.f);
+        }
     }
   }else if((digitalRead(switch2) == HIGH)&&(mozziAnalogRead(A5) != 1023)){ //Arrp mode:sometime make liblary
     if(kDelay.ready()){
@@ -312,12 +314,13 @@ envelope.setTimes(attackR, 10, 10, decayR);
         bang++;
         break;
       }
-     envelope.noteOff();
      kDelay.start(tmp_bpm+attackR+decayR); 
     }else{
       bang = 0;
       }  
     }
+    envelope.update();
+    
    }else{
     //gain = (int) kEnvelope.next();
     aSin.setFreq(0.f);
