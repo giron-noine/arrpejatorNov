@@ -10,7 +10,12 @@
 #include <tables/sin2048_int8.h>
 
 #define CONTROL_RATE 64
+
 Oscil <SIN2048_NUM_CELLS, AUDIO_RATE> aSin(SIN2048_DATA);
+Oscil <TRIANGLE2048_NUM_CELLS, AUDIO_RATE> aTri(TRIANGLE2048_DATA);
+Oscil <SAW2048_NUM_CELLS, AUDIO_RATE> aSaw(SAW2048_DATA);
+Oscil <SQUARE_NO_ALIAS_2048_NUM_CELLS, AUDIO_RATE> aSqu(SQUARE_NO_ALIAS_2048_DATA);
+
 EventDelay kDelay;
 ADSR <CONTROL_RATE, AUDIO_RATE> envelope;
 /*
@@ -19,7 +24,7 @@ Rotary rotary2 = Rotary(5, 6);
 Rotary rotary3 = Rotary(7, 8);
 */
 
-int const nob[3] = {A2,A3,A4};
+int const nob[4] = {A2,A3,A4,A1};
 
 #define switch1 3 //page
 #define switch2 2 //arrp ON
@@ -32,6 +37,14 @@ int const nob[3] = {A2,A3,A4};
 const byte s_pin[SW_NUM] = {10, 11};
 
 int octv = 0;
+
+//cross fade
+int input[2] = {0,0};
+int curve[2][6];
+int sinGain[2];
+int triGain[2];
+int sawGain[2];
+int squGain[2];
 
 int valNob[2][3];//ページ番号,ノブ番号
 int realNob[2][3];
@@ -74,6 +87,11 @@ void setup()
   kDelay.start(500);
   for (byte i = 0 ; i < SW_NUM ; i++){
     pinMode(s_pin[i], INPUT);
+
+  byte attack_level = 255;
+  byte decay_level = 255;
+  envelope.setADLevels(attack_level,decay_level);
+
   }
 }
 //---------------------setup end
@@ -81,10 +99,6 @@ void setup()
 
 //---------------------updateControl start
 void updateControl(){
-
-  byte attack_level = 255;
-  byte decay_level = 255;
-  envelope.setADLevels(attack_level,decay_level);
 
 //esc chataring
     byte sw1 = BUTTON(0);
@@ -166,21 +180,62 @@ stepNum = map(valNob[0][2], 0, 127, 0, 16);
 attackR = map(valNob[1][0], 0, 127, 1, 1000);
 decayR = map(valNob[1][1], 0, 127, 1, 1000);
 tmp_bpm = map(valNob[1][2], 0, 127, 1, 2000);
+envelope.setTimes(attackR, 10, 10, decayR);
+
+//select waveform
+  input[0] = mozziAnalogRead(nob[3]);
+  curve[0][0] = map(mozziAnalogRead(nob[3]), 0, 341, 100, 0);
+  curve[0][1] = map(mozziAnalogRead(nob[3]), 0, 341, 0, 100);
+  curve[0][2] = map(mozziAnalogRead(nob[3]), 342, 682, 100, 0);
+  curve[0][3] = map(mozziAnalogRead(nob[3]), 342, 682, 0, 100);
+  curve[0][4] = map(mozziAnalogRead(nob[3]), 683, 1023, 100, 0);
+  curve[0][5] = map(mozziAnalogRead(nob[3]), 683, 1023, 0, 100);
+
+  if((0<=input[0])&&(input[0]<342)){
+      sinGain[0] = curve[0][0];
+  }else{
+      sinGain[0] = 0;
+  }
+  
+  if((0<=input[0])&&(input[0]<342)){
+      triGain[0] = curve[0][1];
+  }
+  
+  if((341<input[0])&&(input[0]<683)){
+      triGain[0] = curve[0][2];
+  }else if(input[0]>683){
+      triGain[0] = 0;
+  }
+  
+  if((341<input[0])&&(input[0]<683)){
+      sawGain[0] = curve[0][3];
+  }else if(input[0]<341){
+      sawGain[0] = 0;
+  }
+  
+  if((682<input[0])&&(input[0]<=1023)){
+      sawGain[0] = curve[0][4];
+  }
+  
+  if((682<input[0])&&(input[0]<=1023)){
+      squGain[0] = curve[0][5];
+  }else if(input[0]<682){
+      squGain[0] = 0;
+  }
 
 //push da oscillate
   if(digitalRead(switch2) == LOW){
     if(mozziAnalogRead(A5) != 1023){
-      envelope.setTimes(attackR, 100, 100, decayR);
       envelope.noteOn();
       playNote = pushkey(mozziAnalogRead(A5)) + 60 + keyshift;
   		aSin.setFreq(mtof(playNote));
+		aTri.setFreq(mtof(playNote));
+		aSaw.setFreq(mtof(playNote));
+		aSqu.setFreq(mtof(playNote));
       //gain = (int) kEnvelope.next();
     }else{
       envelope.noteOff();
-        if(kDelay.ready()){
-          kDelay.start(attackR+decayR);
-          aSin.setFreq(0.f);
-        }
+      //aSin.setFreq(0.f);
     }
   }else if((digitalRead(switch2) == HIGH)&&(mozziAnalogRead(A5) != 1023)){ //Arrp mode:sometime make liblary
     if(kDelay.ready()){
@@ -314,13 +369,12 @@ tmp_bpm = map(valNob[1][2], 0, 127, 1, 2000);
         bang++;
         break;
       }
+     envelope.noteOff();
      kDelay.start(tmp_bpm+attackR+decayR); 
     }else{
       bang = 0;
       }  
     }
-    envelope.update();
-    
    }else{
     //gain = (int) kEnvelope.next();
     aSin.setFreq(0.f);
@@ -333,7 +387,7 @@ tmp_bpm = map(valNob[1][2], 0, 127, 1, 2000);
 //---------------------updateAudio start
 int updateAudio(){
 	//return (gain*aSin.next())>>8;
-  return (int) (envelope.next() * aSin.next())>>8;
+  return (int) (envelope.next() * (aSin.next()*sinGain[0])+(aTri.next()*triGain[0])+(aSaw.next()*sawGain[0])+(sSqu.next*squGain[0]))>>9;
   //return aSin.next();
 }
 //---------------------updateAudio end
