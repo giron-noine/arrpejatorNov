@@ -8,6 +8,10 @@
 #include <EventDelay.h>
 #include <ADSR.h>
 #include <tables/sin2048_int8.h>
+#include <tables/triangle2048_int8.h>
+#include <tables/saw2048_int8.h>
+#include <tables/square_no_alias_2048_int8.h>
+#include <LowPassFilter.h>
 
 #define CONTROL_RATE 64
 
@@ -24,17 +28,17 @@ Rotary rotary2 = Rotary(5, 6);
 Rotary rotary3 = Rotary(7, 8);
 */
 
-int const nob[4] = {A2,A3,A4,A1};
+int const nob[4] = {A1,A2,A3,A4};
 
-#define switch1 3 //page
+//#define switch1 3 //page
 #define switch2 2 //arrp ON
 #define looptop 12
 
-#define SW_NUM 2
+#define SW_NUM 3
 #define PUSH_SHORT  10
 #define PUSH_LIMIT  PUSH_SHORT + 10
  
-const byte s_pin[SW_NUM] = {10, 11};
+const byte s_pin[SW_NUM] = {3,10,11}; //3page, 10octUP, 11octDOWN
 
 int octv = 0;
 
@@ -46,16 +50,22 @@ int triGain[2];
 int sawGain[2];
 int squGain[2];
 
-int valNob[2][3];//ページ番号,ノブ番号
-int realNob[2][3];
+int valNob[4][4];//ページ番号,ノブ番号
+int realNob[4][4];
 
-int Flag[2][3] = {
-  {0,0,0},
-  {0,0,0}
+int Flag[4][4] = {
+  {0,0,0,0},
+  {0,0,0,0},
+  {0,0,0,0},
+  {0,0,0,0}
 };
 
-int pageState0 = 0;
-int pageState1 = 0;
+int page = 0;
+int pageState[4] = {0,0,0,0};
+#define page1 6
+#define page2 7
+#define page3 8
+#define page4 9
 
 int stepNum = 16;
 int pattern = 0;
@@ -79,9 +89,13 @@ int playNote;
 //--------------------setup start
 void setup() 
 {
-  pinMode(switch1, INPUT);
+  //pinMode(switch1, INPUT);
   pinMode(switch2, INPUT);
   pinMode(looptop, OUTPUT);
+  pinMode(page1, OUTPUT);
+  pinMode(page2, OUTPUT);
+  pinMode(page3, OUTPUT);
+  pinMode(page4, OUTPUT);
   startMozzi(CONTROL_RATE);
   randSeed();
   kDelay.start(500);
@@ -103,6 +117,46 @@ void updateControl(){
 //esc chataring
     byte sw1 = BUTTON(0);
     byte sw2 = BUTTON(1);
+    byte sw3 = BUTTON(2);
+    if((sw1 == 255)&&(page<4)){
+      page++;
+    }else if(page>3){
+      page = 0;
+    }
+    switch(page){
+      case 0:
+        pageState[0] = 1;
+        digitalWrite(page1, HIGH);
+        digitalWrite(page2, LOW);
+        digitalWrite(page3, LOW);
+        digitalWrite(page4, LOW);
+        break;
+
+       case 1:
+        pageState[1] = 1;
+        digitalWrite(page1, LOW);
+        digitalWrite(page2, HIGH);
+        digitalWrite(page3, LOW);
+        digitalWrite(page4, LOW);
+        break;
+
+       case 2:
+        pageState[2] = 1;
+        digitalWrite(page1, LOW);
+        digitalWrite(page2, LOW);
+        digitalWrite(page3, HIGH);
+        digitalWrite(page4, LOW);
+        break;
+
+       case 3:
+        pageState[3] = 1;
+        digitalWrite(page1, LOW);
+        digitalWrite(page2, LOW);
+        digitalWrite(page3, LOW);
+        digitalWrite(page4, HIGH);
+        break;
+    }
+  
     if((sw1 == 255)&&(octv<3)){
       octv++;
       keyshift = octv*12;
@@ -116,21 +170,16 @@ void updateControl(){
       octv = -3;
     }
 
-  for(int i=0; i<3; i++){
+  for(int i=0; i<4; i++){
     realNob[0][i] = map(mozziAnalogRead(nob[i]),0,1023,0,127);
     realNob[1][i] = map(mozziAnalogRead(nob[i]),0,1023,0,127);
+    realNob[2][i] = map(mozziAnalogRead(nob[i]),0,1023,0,127);
+    realNob[3][i] = map(mozziAnalogRead(nob[i]),0,1023,0,127);
   }
 
-//page1 prossece
-	if(digitalRead(switch1) == LOW){
-    pageState0 = 1;
-	}else{
-    pageState1 = 1;
-	}
-
 //page1 process
-  if(pageState0 == 1){
-    for(int i=0; i<3; i++){
+  if(pageState[0] == 1){
+    for(int i=0; i<4; i++){
       if(Flag[0][i] == 0){
       if(valNob[0][i] == realNob[0][i]){
          Flag[0][i] = 1;
@@ -139,15 +188,17 @@ void updateControl(){
         valNob[0][i] = realNob[0][i];
       }
     }
-    pageState0 = 0;
-    for(int i=0; i<3; i++){
+    pageState[0] = 0;
+    for(int i=0; i<4; i++){
       Flag[1][i] = 0;
+      Flag[2][i] = 0;
+      Flag[3][i] = 0;
     }
   }
 
 //page2 process
-  if(pageState1 == 1){
-    for(int i=0; i<3; i++){
+  if(pageState[1] == 1){
+    for(int i=0; i<4; i++){
       if(Flag[1][i] == 0){
       if(valNob[1][i] == realNob[1][i]){
          Flag[1][i] = 1;
@@ -156,21 +207,52 @@ void updateControl(){
         valNob[1][i] = realNob[1][i];
       }
     }
-    pageState1 = 0;
-    for(int i=0; i<3; i++){
+    pageState[1] = 0;
+    for(int i=0; i<4; i++){
       Flag[0][i] = 0;
+      Flag[2][i] = 0;
+      Flag[3][i] = 0;
     }
   }
 
-/*
-//rotary ver
-     unsigned char result3 = rotary3.process(); //step select
-     if((result3 == DIR_CW)&&(stepNum<16)){
-        stepNum++;
-        }else if((result3 == DIR_CCW)&&(stepNum>0)){
-          stepNum--;
+//page3 process
+  if(pageState[2] == 1){
+    for(int i=0; i<4; i++){
+      if(Flag[2][i] == 0){
+      if(valNob[2][i] == realNob[2][i]){
+         Flag[2][i] = 1;
         }
-*/
+      }else{
+        valNob[2][i] = realNob[2][i];
+      }
+    }
+    pageState[2] = 0;
+    for(int i=0; i<4; i++){
+      Flag[0][i] = 0;
+      Flag[1][i] = 0;
+      Flag[3][i] = 0;
+    }
+  }
+
+//page4 process
+  if(pageState[3] == 1){
+    for(int i=0; i<4; i++){
+      if(Flag[3][i] == 0){
+      if(valNob[3][i] == realNob[3][i]){
+         Flag[3][i] = 1;
+        }
+      }else{
+        valNob[3][i] = realNob[3][i];
+      }
+    }
+    pageState[3] = 0;
+    for(int i=0; i<4; i++){
+      Flag[0][i] = 0;
+      Flag[1][i] = 0;
+      Flag[2][i] = 0;
+    }
+  }
+
 
 //asign
 pattern = map(valNob[0][0], 0, 127, 0, 5);
@@ -243,7 +325,7 @@ envelope.setTimes(attackR, 10, 10, decayR);
       switch(bang){
         case 0: //int noiPatt(int patt, int scale, int note, int steps)
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        digitalWrite(12, HIGH);
+        digitalWrite(looptop, HIGH);
         envelope.noteOn();
         //kEnvelope.start(attack,decay);
         bang++;
@@ -387,7 +469,7 @@ envelope.setTimes(attackR, 10, 10, decayR);
 //---------------------updateAudio start
 int updateAudio(){
 	//return (gain*aSin.next())>>8;
-  return (int) (envelope.next() * (aSin.next()*sinGain[0])+(aTri.next()*triGain[0])+(aSaw.next()*sawGain[0])+(sSqu.next*squGain[0]))>>9;
+  return (int) (envelope.next() * (aSin.next()*sinGain[0])+(aTri.next()*triGain[0])+(aSaw.next()*sawGain[0])+(aSqu.next()*squGain[0]))>>9;
   //return aSin.next();
 }
 //---------------------updateAudio end
