@@ -239,27 +239,27 @@ int noiPatt(int patt, int scale, int note, int steps){
 int pushkey(int pushSwitch){
   if(pushSwitch < 50){
     return 0; //0 10kohm
-  }else if(pushSwitch < 100){
+  }else if(pushSwitch < 150){
     return 1; //78 820ohm
-  }else if(pushSwitch < 200){
-    return 2; //158 1kohm
   }else if(pushSwitch < 300){
+    return 2; //158 1kohm
+  }else if(pushSwitch < 400){
     return 3; //237 1.2kohm
-  }else if(pushSwitch < 350){
-    return 4; //318 1.5kohm
-  }else if(pushSwitch < 420){
-    return 5; //404 2kohm
   }else if(pushSwitch < 500){
-    return 6; //477 2.2kohm
+    return 4; //318 1.5kohm
   }else if(pushSwitch < 600){
+    return 5; //404 2kohm
+  }else if(pushSwitch < 660){
+    return 6; //477 2.2kohm
+  }else if(pushSwitch < 730){
   return 7; //552 3kohm
-  }else if(pushSwitch < 700){
+  }else if(pushSwitch < 800){
   return 8; //636 4.7kohm
-  }else if(pushSwitch < 740){
+  }else if(pushSwitch < 850){
     return 9; //715 6.8kohm
-  }else if(pushSwitch < 840){
-    return 10; //797 12kohm
   }else if(pushSwitch < 900){
+    return 10; //797 12kohm
+  }else if(pushSwitch < 950){
     return 11; //871 22kohm
   }else if(pushSwitch < 1000){
     return 12; //947 68kohm
