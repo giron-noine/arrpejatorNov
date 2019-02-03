@@ -42,7 +42,9 @@ int sawGain[2];
 int squGain[2];
 
 //nob assign
-int const nob[4] = {A1,A2,A3,A4};
+int const nob[5] = {A1,A2,A3,A4,A7};
+
+//int const keySwitch = A7;
 
 //page nob
 int valNob[4][4];//ページ番号,ノブ番号
@@ -103,12 +105,17 @@ void setup()
   byte decay_level = 255;
   envelope.setADLevels(attack_level,decay_level);
 */
+
+Serial.begin(9600);
+
 }
 //---------------------setup end
 
 
 //---------------------updateControl start
 void updateControl(){
+
+int keySwitch = mozziAnalogRead(nob[4]);
 
 //esc chataring
     byte sw1 = BUTTON(0);
@@ -321,24 +328,26 @@ envelope.setTimes(attackR, 10, 10, decayR);
   }
 
 //push da oscillate
-  if((digitalRead(arrpOn) == LOW)&&(mozziAnalogRead(A5) != 1023)){
+  //if(keySwitch != 1023){
+  if((digitalRead(arrpOn) == LOW)&&(keySwitch != 1023)){
       //envelope.noteOn();
-      playNote = pushkey(mozziAnalogRead(A5)) + 60 + keyshift;
+      digitalWrite(looptop, LOW);
+      playNote = pushkey(keySwitch) + 60 + keyshift;
   		aSin.setFreq(mtof(playNote));
 		  aTri.setFreq(mtof(playNote));
 		  aSaw.setFreq(mtof(playNote));
 		  aSqu.setFreq(mtof(playNote));
       //gain = (int) kEnvelope.next();
-          
-  }else if((digitalRead(arrpOn) == HIGH)&&(mozziAnalogRead(A5) != 1023)){ //Arrp mode:sometime make liblary
+               
+  }else if((digitalRead(arrpOn) == HIGH)&&(keySwitch != 1023)){ //Arrp mode:sometime make liblary
     if(kDelay.ready()){
      if(bang < stepNum){
       switch(bang){
         case 0: //int noiPatt(int patt, int scale, int note, int steps)
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, HIGH);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -346,10 +355,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 1:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -357,10 +366,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 2:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -368,10 +377,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 3:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -379,10 +388,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 4:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -390,10 +399,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 5:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -401,10 +410,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 6:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -412,10 +421,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 7:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -423,10 +432,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 8:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -434,10 +443,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 9:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -445,10 +454,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 10:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -456,10 +465,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 11:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -467,10 +476,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 12:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -478,10 +487,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 13:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -489,10 +498,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 14:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -500,10 +509,10 @@ envelope.setTimes(attackR, 10, 10, decayR);
         break;
 
         case 15:
-        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
-        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A5)), bang)));
+        aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
+        aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, LOW);
         //envelope.noteOn();
         //kEnvelope.start(attack,decay);
@@ -518,12 +527,18 @@ envelope.setTimes(attackR, 10, 10, decayR);
     }
    }else{
     //gain = (int) kEnvelope.next();
+    digitalWrite(looptop, HIGH);
     aSin.setFreq(0);
     aTri.setFreq(0);
     aSaw.setFreq(0);
     aSqu.setFreq(0);
   }
   //envelope.update();
+/*
+  Serial.print("KEY:");
+  Serial.println(mozziAnalogRead(A7));
+  Serial.println(keySwitch);
+*/
 }
 //---------------------updateControl end
 
