@@ -12,7 +12,7 @@
 #include <tables/square_no_alias_2048_int8.h>
 #include <LowPassFilter.h>
 
-#define CONTROL_RATE 64
+#define CONTROL_RATE 128
 
 Oscil <SIN2048_NUM_CELLS, AUDIO_RATE> aSin(SIN2048_DATA);
 Oscil <TRIANGLE2048_NUM_CELLS, AUDIO_RATE> aTri(TRIANGLE2048_DATA);
@@ -42,7 +42,12 @@ int sawGain[2];
 int squGain[2];
 
 //nob assign
-int const nob[5] = {A1,A2,A3,A4,A7};
+//int const nob[5] = {A4,A3,A2,A1,A7};
+int nob0 = A1;
+int nob1 = A2;
+int nob2 = A3;
+int nob3 = A4;
+int nob4 = A7;
 
 //int const keySwitch = A7;
 
@@ -86,28 +91,28 @@ int pushkey(int);
 int playNote;
 
 //--------------------setup start
-void setup() 
-{
+void setup() {
+  Serial.begin(115200);
   pinMode(arrpOn, INPUT);
   pinMode(looptop, OUTPUT);
   pinMode(page1, OUTPUT);
   pinMode(page2, OUTPUT);
   pinMode(page3, OUTPUT);
   pinMode(page4, OUTPUT);
-  startMozzi(CONTROL_RATE);
   randSeed();
   kDelay.start(500);
   for (byte i = 0 ; i < SW_NUM ; i++){
     pinMode(s_pin[i], INPUT);
   }
+  startMozzi(CONTROL_RATE);
 /*
   byte attack_level = 255;
   byte decay_level = 255;
   envelope.setADLevels(attack_level,decay_level);
-*/
-
+  
 Serial.begin(9600);
-
+*/
+  //lpf.setResonance(150);
 }
 //---------------------setup end
 
@@ -115,7 +120,8 @@ Serial.begin(9600);
 //---------------------updateControl start
 void updateControl(){
 
-int keySwitch = mozziAnalogRead(nob[4]);
+//int keySwitch = mozziAnalogRead(nob[4]);
+int keySwitch = mozziAnalogRead(nob4);
 
 //esc chataring
     byte sw1 = BUTTON(0);
@@ -184,12 +190,20 @@ int keySwitch = mozziAnalogRead(nob[4]);
     }else if(octv<-3){
       octv = -3;
     }
-
+/*
   for(int i=0; i<4; i++){
     realNob[0][i] = map(mozziAnalogRead(nob[i]),0,1023,0,127);
     realNob[1][i] = map(mozziAnalogRead(nob[i]),0,1023,0,127);
     realNob[2][i] = map(mozziAnalogRead(nob[i]),0,1023,0,127);
     realNob[3][i] = map(mozziAnalogRead(nob[i]),0,1023,0,127);
+  }
+*/
+
+for(int i=0; i<4; i++){
+    realNob[i][0] = map(mozziAnalogRead(nob0),0,1023,0,127);
+    realNob[i][1] = map(mozziAnalogRead(nob1),0,1023,0,127);
+    realNob[i][2] = map(mozziAnalogRead(nob2),0,1023,0,127);
+    realNob[i][3] = map(mozziAnalogRead(nob3),0,1023,0,127);
   }
 
 //page1 process
@@ -273,16 +287,12 @@ int keySwitch = mozziAnalogRead(nob[4]);
 //page1
 pattern = map(valNob[0][0], 0, 127, 0, 5);
 scaleNum = map(valNob[0][1], 0, 127, 0, 5);
-byte cutoff_freq = map(valNob[0][2], 0, 127, 0, 255);
-byte flt_res = map(valNob[0][3], 0, 127, 0, 255);
-lpf.setCutoffFreq(cutoff_freq);
-lpf.setResonance(flt_res);
+stepNum = map(valNob[0][2], 0, 127, 0, 16);
+tmp_bpm = map(valNob[0][3], 0, 127, 1, 2000);
 
 //page2
-stepNum = map(valNob[1][0], 0, 127, 0, 16);
 attackR = map(valNob[1][1], 0, 127, 1, 1000);
 decayR = map(valNob[1][2], 0, 127, 1, 1000);
-tmp_bpm = map(valNob[1][3], 0, 127, 1, 2000);
 envelope.setTimes(attackR, 10, 10, decayR);
 
 //page3
@@ -326,6 +336,12 @@ envelope.setTimes(attackR, 10, 10, decayR);
   }else if(input[0]<84){
       squGain[0] = 0;
   }
+
+//page 4
+byte cutoff_freq = map(valNob[3][0], 0, 127, 0, 255);
+byte flt_res = map(valNob[3][1], 0, 127, 0, 255);
+lpf.setResonance(cutoff_freq);
+lpf.setCutoffFreq(flt_res);
 
 //push da oscillate
   //if(keySwitch != 1023){
@@ -534,20 +550,32 @@ envelope.setTimes(attackR, 10, 10, decayR);
     aSqu.setFreq(0);
   }
   //envelope.update();
-/*
-  Serial.print("KEY:");
-  Serial.println(mozziAnalogRead(A7));
-  Serial.println(keySwitch);
-*/
+
+  Serial.print("1:");
+  Serial.println(valNob[0][0]);
+  Serial.print("2:");
+  Serial.println(valNob[0][1]);
+  Serial.print("3:");
+  Serial.println(valNob[0][2]);
+  Serial.print("4:");
+  Serial.println(valNob[0][3]);
+  Serial.print("5:");
+  Serial.println(mozziAnalogRead(nob4));
+  Serial.print("SW:");
+  Serial.println(digitalRead(arrpOn));
+
 }
 //---------------------updateControl end
 
 
 //---------------------updateAudio start
-int updateAudio(){
+int updateAudio(){ 
+	char master1 = ((aSin.next()*sinGain[0]>>8)+(aTri.next()*triGain[0]>>8)+(aSaw.next()*sawGain[0]>>8)+(aSqu.next()*squGain[0]>>8));
+  char asig = lpf.next(master1);
+  return (int) asig;
 	//return (gain*aSin.next())>>8;
   //return (int) (envelope.next() * lpf.next((aSin.next()*sinGain[0])+(aTri.next()*triGain[0])+(aSaw.next()*sawGain[0])+(aSqu.next()*squGain[0])))>>8;
-  return (int) ((aSin.next()*sinGain[0])+(aTri.next()*triGain[0])+(aSaw.next()*sawGain[0])+(aSqu.next()*squGain[0]))>>8;
+  //return (int) ((aSin.next()*sinGain[0])+(aTri.next()*triGain[0])+(aSaw.next()*sawGain[0])+(aSqu.next()*squGain[0]))>>8;
   //return aSin.next();
 }
 //---------------------updateAudio end
