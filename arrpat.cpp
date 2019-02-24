@@ -237,32 +237,34 @@ int noiPatt(int patt, int scale, int note, int steps){
 
 
 int pushkey(int pushSwitch){
-  if(pushSwitch < 50){
-    return 0; //0 10kohm
-  }else if(pushSwitch < 100){
-    return 1; //78 820ohm
-  }else if(pushSwitch < 200){
-    return 2; //158 1kohm
-  }else if(pushSwitch < 300){
-    return 3; //237 1.2kohm
-  }else if(pushSwitch < 350){
-    return 4; //318 1.5kohm
-  }else if(pushSwitch < 420){
-    return 5; //404 2kohm
-  }else if(pushSwitch < 500){
-    return 6; //477 2.2kohm
-  }else if(pushSwitch < 600){
-  return 7; //552 3kohm
-  }else if(pushSwitch < 700){
-  return 8; //636 4.7kohm
-  }else if(pushSwitch < 740){
-    return 9; //715 6.8kohm
-  }else if(pushSwitch < 840){
-    return 10; //797 12kohm
-  }else if(pushSwitch < 900){
-    return 11; //871 22kohm
-  }else if(pushSwitch < 1000){
-    return 12; //947 68kohm
+  if(pushSwitch < 50){ //0 10kohm
+    return 0;
+  }else if(pushSwitch < 90){ //76 820ohm
+    return 1;
+  }else if(pushSwitch < 200){ //156 1kohm
+    return 2;
+  }else if(pushSwitch < 250){ //236 1.2kohm
+    return 3;
+  }else if(pushSwitch < 340){ //317 1.5kohm
+    return 4;
+  }else if(pushSwitch < 450){ //403 2kohm
+    return 5;
+  }else if(pushSwitch < 500){ //476 2.2kohm
+    return 6;
+  }else if(pushSwitch < 600){ //551 3kohm
+  return 7;
+  }else if(pushSwitch < 700){ //636 4.7kohm
+  return 8;
+  }else if(pushSwitch < 730){ //716 6.8kohm
+    return 9;
+  }else if(pushSwitch < 810){ //798 12kohm
+    return 10;
+  }else if(pushSwitch < 900){ //871 22kohm
+    return 11;
+  }else if(pushSwitch < 1000){ //949 68kohm
+    return 12;
+  }else{
+    return -1;
   }
 }
 
