@@ -5,6 +5,7 @@
 #include <mozzi_rand.h>
 #include <mozzi_midi.h>
 #include <EventDelay.h>
+#include <Ead.h>
 #include <ADSR.h>
 #include <tables/sin2048_int8.h>
 #include <tables/triangle2048_int8.h>
@@ -20,7 +21,9 @@ Oscil <SAW2048_NUM_CELLS, AUDIO_RATE> aSaw(SAW2048_DATA);
 Oscil <SQUARE_NO_ALIAS_2048_NUM_CELLS, AUDIO_RATE> aSqu(SQUARE_NO_ALIAS_2048_DATA);
 
 EventDelay kDelay;
-ADSR <CONTROL_RATE, AUDIO_RATE> envelope;
+EventDelay noteDelay;
+Ead eadEnv(CONTROL_RATE);
+ADSR <CONTROL_RATE, CONTROL_RATE> envelope;
 LowPassFilter lpf;
 
 #define arrpOn 2 //arrp ON
@@ -81,14 +84,18 @@ int bang = 0;
 
 //envelope
 int gain;
-unsigned int attack = 10;
-unsigned int decay = 1000;
-unsigned int attackR = 10;
-unsigned int decayR = 1000;
+unsigned int attack = 250;
+unsigned int decay = 250;
+unsigned int attackR = 200;
+unsigned int decayR = 200;
+unsigned int sustain, release_ms;
+
 
 int pushkey(int);
 
 int playNote;
+
+byte cutoff_freq;
 
 //--------------------setup start
 void setup() {
@@ -104,6 +111,7 @@ void setup() {
   for (byte i = 0 ; i < SW_NUM ; i++){
     pinMode(s_pin[i], INPUT);
   }
+  cutoff_freq = 255;
   startMozzi(CONTROL_RATE);
 /*
   byte attack_level = 255;
@@ -288,12 +296,15 @@ for(int i=0; i<4; i++){
 pattern = map(valNob[0][0], 0, 127, 0, 5);
 scaleNum = map(valNob[0][1], 0, 127, 0, 5);
 stepNum = map(valNob[0][2], 0, 127, 0, 16);
-tmp_bpm = map(valNob[0][3], 0, 127, 1, 2000);
+tmp_bpm = map(valNob[0][3], 0, 127, 10, 2000);
 
 //page2
-attackR = map(valNob[1][1], 0, 127, 1, 1000);
-decayR = map(valNob[1][2], 0, 127, 1, 1000);
-envelope.setTimes(attackR, 10, 10, decayR);
+attackR = map(valNob[1][0], 0, 127, 10, 500);
+decayR = map(valNob[1][1], 0, 127, 10, 500);
+sustain = map(valNob[1][2], 0, 127, 10, 500);
+release_ms = map(valNob[1][3], 0, 127, 10, 500);
+envelope.setADLevels(attack,decay);
+envelope.setTimes(attackR,decayR,sustain,release_ms);
 
 //page3
 //select waveform
@@ -337,40 +348,48 @@ envelope.setTimes(attackR, 10, 10, decayR);
       squGain[0] = 0;
   }
 
+  cutoff_freq = map(valNob[2][1], 0, 127, 20, 255);
+  byte flt_res = map(valNob[2][2], 0, 127, 0, 255);
+  lpf.setResonance(cutoff_freq);
+  lpf.setCutoffFreq(flt_res);
+
 //page 4
-byte cutoff_freq = map(valNob[3][0], 0, 127, 0, 255);
-byte flt_res = map(valNob[3][1], 0, 127, 0, 255);
-lpf.setResonance(cutoff_freq);
-lpf.setCutoffFreq(flt_res);
+
 
 //push da oscillate
   //if(keySwitch != 1023){
-  if((digitalRead(arrpOn) == LOW)&&(keySwitch != 1023)){
-      //envelope.noteOn();
+  if((digitalRead(arrpOn) == LOW)&&(keySwitch < 1005)){
+      envelope.noteOn();
+      //eadEnv.start(attackR,decayR);
       digitalWrite(looptop, LOW);
       playNote = pushkey(keySwitch) + 60 + keyshift;
   		aSin.setFreq(mtof(playNote));
 		  aTri.setFreq(mtof(playNote));
 		  aSaw.setFreq(mtof(playNote));
 		  aSqu.setFreq(mtof(playNote));
+
+     
+
       //gain = (int) kEnvelope.next();
                
-  }else if((digitalRead(arrpOn) == HIGH)&&(keySwitch != 1023)){ //Arrp mode:sometime make liblary
+  }else if((digitalRead(arrpOn) == HIGH)&&(keySwitch < 1005)){ //Arrp mode:sometime make liblary
     if(kDelay.ready()){
      if(bang < stepNum){
       switch(bang){
         case 0: //int noiPatt(int patt, int scale, int note, int steps)
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSqu.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         digitalWrite(looptop, HIGH);
-        //envelope.noteOn();
+        
         //kEnvelope.start(attack,decay);
         bang++;
         break;
 
         case 1:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -382,6 +401,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 2:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -393,6 +413,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 3:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -404,6 +425,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 4:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -415,6 +437,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 5:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -426,6 +449,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 6:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -437,6 +461,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 7:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -448,6 +473,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 8:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -459,6 +485,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 9:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -470,6 +497,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 10:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -481,6 +509,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 11:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -492,6 +521,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 12:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -503,6 +533,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 13:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -514,6 +545,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 14:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -525,6 +557,7 @@ lpf.setCutoffFreq(flt_res);
         break;
 
         case 15:
+        envelope.noteOn();
         aSin.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aTri.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
         aSaw.setFreq(mtof(keyshift + noiPatt(pattern, scaleNum, pushkey(mozziAnalogRead(A7)), bang)));
@@ -535,34 +568,38 @@ lpf.setCutoffFreq(flt_res);
         bang++;
         break;
       }
-     //envelope.noteOff();
-     kDelay.start(tmp_bpm+attackR+decayR); 
+     envelope.update();
+     gain = envelope.next();
+     kDelay.start(tmp_bpm + attackR + decayR); 
     }else{
       bang = 0;
       }  
     }
    }else{
-    //gain = (int) kEnvelope.next();
+    envelope.update();
+    gain = envelope.next();
+    //gain = (int)eadEnv.next();
     digitalWrite(looptop, HIGH);
+    /*
     aSin.setFreq(0);
     aTri.setFreq(0);
     aSaw.setFreq(0);
     aSqu.setFreq(0);
+    */
   }
-  //envelope.update();
 
   Serial.print("1:");
-  Serial.println(valNob[0][0]);
+  Serial.println(attackR);
   Serial.print("2:");
-  Serial.println(valNob[0][1]);
+  Serial.println(decayR);
   Serial.print("3:");
-  Serial.println(valNob[0][2]);
+  Serial.println(sustain);
   Serial.print("4:");
-  Serial.println(valNob[0][3]);
+  Serial.println(release_ms);
   Serial.print("5:");
   Serial.println(mozziAnalogRead(nob4));
   Serial.print("SW:");
-  Serial.println(digitalRead(arrpOn));
+  Serial.println(tmp_bpm);
 
 }
 //---------------------updateControl end
@@ -572,7 +609,7 @@ lpf.setCutoffFreq(flt_res);
 int updateAudio(){ 
 	char master1 = ((aSin.next()*sinGain[0]>>8)+(aTri.next()*triGain[0]>>8)+(aSaw.next()*sawGain[0]>>8)+(aSqu.next()*squGain[0]>>8));
   char asig = lpf.next(master1);
-  return (int) asig;
+  return (int) (gain * asig)>>8;
 	//return (gain*aSin.next())>>8;
   //return (int) (envelope.next() * lpf.next((aSin.next()*sinGain[0])+(aTri.next()*triGain[0])+(aSaw.next()*sawGain[0])+(aSqu.next()*squGain[0])))>>8;
   //return (int) ((aSin.next()*sinGain[0])+(aTri.next()*triGain[0])+(aSaw.next()*sawGain[0])+(aSqu.next()*squGain[0]))>>8;
